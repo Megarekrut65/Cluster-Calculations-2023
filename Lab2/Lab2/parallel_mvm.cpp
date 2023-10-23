@@ -29,15 +29,9 @@ void mpi_multiply(int* matrix1, int* matrix2, int* result, int size) {
 	init_data(matrix1_block, block1, block2, block_result, block_size);
 	data_distribution(matrix1, matrix2, matrix1_block, block2, size, block_size, grid_coords, &row_comm, &col_comm);
 
-	MPI_Barrier(MPI_COMM_WORLD);
+	parallel_result_calculation(block1, matrix1_block, block2, block_result, block_size, grid_size, grid_coords, &row_comm, &col_comm);
 
-	for (int i = 0; i < number; i++) {
-		if (rank == i) {
-			std::cout << "rank " << rank << std::endl;
-			print_matrix(block2, block_size);
-		}
-		MPI_Barrier(MPI_COMM_WORLD);
-	}
+	result_collection(result, block_result, size, block_size, grid_coords, &row_comm, &col_comm);
 
 	free_data(matrix1_block, block1, block2, block_result);
 }

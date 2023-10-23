@@ -3,7 +3,7 @@
 
 
 bool check_correct(int* matrix1, int* matrix2, int* result, int size) {
-	int* serial_result = new int[size*size];
+	int* serial_result = new int[size * size] {};
 	multiply(matrix1, matrix2, serial_result, size);
 
 	for (int i = 0; i < size*size; i++) {
@@ -43,7 +43,7 @@ void mpi_run(int argc, char** argv, int size, bool print_all, int* matrix1, int*
 
 	if (print_all && rank == 0) {
 		std::cout << "\nResult:\n";
-		print_vector(result, size);
+		print_matrix(result, size);
 	}
 
 	if (rank == 0) {

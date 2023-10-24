@@ -2,7 +2,7 @@
 
 void generate_vector(int* vector, int size) {
 	for (int i = 0; i < size; i++) {
-		vector[i] = rand() % 10 + 10;
+		vector[i] = rand() % 10 + 1;
 	}
 }
 

@@ -18,13 +18,13 @@
     <ClCompile Include="Lab2.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="mpi_mvm.cpp">
+    <ClCompile Include="mpi_mm.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="parallel_mvm.cpp">
+    <ClCompile Include="parallel_mm.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="serial_mvm.cpp">
+    <ClCompile Include="serial_mm.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="time_measuring.cpp">
@@ -35,13 +35,13 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="mpi_mvm.h">
+    <ClInclude Include="mpi_mm.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="parallel_mvm.h">
+    <ClInclude Include="parallel_mm.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="serial_mvm.h">
+    <ClInclude Include="serial_mm.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="time_measuring.h">

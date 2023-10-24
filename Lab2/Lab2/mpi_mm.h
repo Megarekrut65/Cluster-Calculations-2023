@@ -2,7 +2,7 @@
 
 #include "mpi.h"
 #include "utilities.h"
-#include "serial_mvm.h"
+#include "serial_mm.h"
 
 //creates matrices
 void init_data(int*& matrix1_block, int*& block1, int*& block2, int*& block_result,int block_size);

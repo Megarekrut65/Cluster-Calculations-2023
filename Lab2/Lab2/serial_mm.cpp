@@ -1,4 +1,4 @@
-#include "serial_mvm.h"
+#include "serial_mm.h"
 
 void multiply(int* matrix1, int* matrix2, int* result, int size) {
 	for (int i = 0; i < size; i++) {

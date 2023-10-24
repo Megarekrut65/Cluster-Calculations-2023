@@ -92,7 +92,7 @@ int main(int argc, char** argv) {
 		parallel = std::stoi(argv[2]);
 	}
 
-	bool print_all = true;
+	bool print_all = false;
 	if (argc > 3) {
 		print_all = std::stoi(argv[3]);
 	}

@@ -1,4 +1,4 @@
-#include "mpi_mvm.h"
+#include "mpi_mm.h"
 
 
 void init_data(int*& matrix1_block, int*& block1, int*& block2, int*& block_result, int block_size) {
@@ -88,7 +88,7 @@ void block2_communication(int* block2, int block_size, int grid_size,
 	int prev_proc = grid_coords[0] - 1;
 	if (grid_coords[0] == 0) prev_proc = grid_size - 1;
 
-	MPI_Sendrecv_replace(block2, block_size * block_size, MPI_DOUBLE,
+	MPI_Sendrecv_replace(block2, block_size * block_size, MPI_INT,
 		next_proc, 0, prev_proc, 0, *col_comm, &status);
 }
 

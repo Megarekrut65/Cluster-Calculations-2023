@@ -28,11 +28,11 @@ struct Comma final : std::numpunct<char>
 };
 int main() {
 
-    const int PROCESSES = 4;
-    int processes[] = { 1, 2, 4, 8 };
+    const int PROCESSES = 3;
+    int processes[PROCESSES] = { 1, 4, 9 };
 
-    const int SIZE = 12, TIMES = 3;
-    int sizes[SIZE] = { 10, 100, 1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000 };
+    const int SIZE = 8, TIMES = 3;
+    int sizes[SIZE] = { 10, 100, 500,1000, 1500, 2000, 2500, 3000};
 
     for (int p = 0; p < PROCESSES; p++) {
 
@@ -40,7 +40,7 @@ int main() {
         file.close();
 
         for (int i = 0; i < SIZE; i++) {
-            std::string command = "Lab1.exe " + std::to_string(sizes[i]);
+            std::string command = "Lab2.exe " + std::to_string(sizes[i]);
 
             if (processes[p] > 1) {
                 command = "mpiexec -n " + std::to_string(processes[p]) + " " + 

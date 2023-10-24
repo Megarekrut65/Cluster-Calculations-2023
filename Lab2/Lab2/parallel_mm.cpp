@@ -1,4 +1,4 @@
-#include "parallel_mvm.h"
+#include "parallel_mm.h"
 
 
 
@@ -16,7 +16,7 @@ void mpi_multiply(int* matrix1, int* matrix2, int* result, int size) {
 		if (rank == 0) std::cout << "Number of processes must be a perfect square\n";
 		return;
 	}
-	if (rank == 0) std::cout << "Parallel matrix multiplication program\n";
+
 	MPI_Bcast(&size, 1, MPI_INT, 0, MPI_COMM_WORLD);
 	create_grid_communicators(grid_size, &grid_comm, &row_comm, &col_comm, grid_coords, rank);
 

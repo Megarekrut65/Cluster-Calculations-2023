@@ -134,6 +134,16 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Lab4.cpp" />
+    <ClCompile Include="parallel_sort.cpp" />
+    <ClCompile Include="serial_sort.cpp" />
+    <ClCompile Include="time_measuring.cpp" />
+    <ClCompile Include="utilities.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="parallel_sort.h" />
+    <ClInclude Include="serial_sort.h" />
+    <ClInclude Include="time_measuring.h" />
+    <ClInclude Include="utilities.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

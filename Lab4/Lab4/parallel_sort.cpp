@@ -5,10 +5,11 @@ void process_initialization(int& size, double*& process_arr, int& block_size,
 
 	MPI_Bcast(&size, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
-	int RestData = size;
+	int rest_data = size;
+
 	for (int i = 0; i < rank; i++)
-		RestData -= RestData / (number - i);
-	block_size = RestData / (number - rank);
+		rest_data -= rest_data / (number - i);
+	block_size = rest_data / (number - rank);
 	process_arr = new double[block_size];
 }
 void process_termination(double* process_data) {
@@ -65,60 +66,89 @@ void exchange_data(double* process_arr, int block_size, int dual_rank,
 		dual_arr, dual_block_size, MPI_DOUBLE, dual_rank, 0,
 		MPI_COMM_WORLD, &status);
 }
+template <typename InputIt1, typename InputIt2, typename OutputIt>
+void merge(InputIt1 first1, InputIt1 last1, InputIt2 first2, InputIt2 last2, OutputIt result) {
+	while (first1 != last1 && first2 != last2) {
+		if (*first1 < *first2) {
+			*result = *first1;
+			++first1;
+		}
+		else {
+			*result = *first2;
+			++first2;
+		}
+		++result;
+	}
+
+	// Copy the remaining elements, if any, from the first range
+	while (first1 != last1) {
+		*result = *first1;
+		++first1;
+		++result;
+	}
+
+	// Copy the remaining elements, if any, from the second range
+	while (first2 != last2) {
+		*result = *first2;
+		++first2;
+		++result;
+	}
+}
 
 void parallel_bubble_sorting(double* process_arr, int block_size, int number, int rank) {
 
 	serial_bubble(process_arr, block_size);
-	int Offset;
-
+	int offset;
+	
 	SplitMode mode;
 	for (int i = 0; i < number; i++) {
 		if ((i % 2) == 1) {
 			if ((rank % 2) == 1) {
-				Offset = 1;
+				offset = 1;
 				mode = KeepFirstHalf;
 			}
 			else {
-				Offset = -1;
+				offset = -1;
 				mode = KeepSecondHalf;
 			}
 		}
 		else {
 			if ((rank % 2) == 1) {
-				Offset = -1;
+				offset = -1;
 				mode = KeepSecondHalf;
 			}
 			else {
-				Offset = 1;
+				offset = 1;
 				mode = KeepFirstHalf;
 			}
 		}
 
-		if ((rank == number - 1) && (Offset == 1)) continue;
-		if ((rank == 0) && (Offset == -1)) continue;
-
+		if ((rank == number - 1) && (offset == 1)) continue;
+		if ((rank == 0) && (offset == -1)) continue;
+		
 		MPI_Status status;
-		int DualBlockSize;
-		MPI_Sendrecv(&block_size, 1, MPI_INT, rank + Offset, 0,
-			&DualBlockSize, 1, MPI_INT, rank + Offset, 0,
+		int dual_block_size;
+		MPI_Sendrecv(&block_size, 1, MPI_INT, rank + offset, 0,
+			&dual_block_size, 1, MPI_INT, rank + offset, 0,
 			MPI_COMM_WORLD, &status);
 
-		double* dual_arr = new double[DualBlockSize];
-		double* merged_arr = new double[block_size + DualBlockSize];
+		double* dual_arr = new double[dual_block_size] {};
+		double* merged_arr = new double[block_size + dual_block_size] {};
 
-		exchange_data(process_arr, block_size, rank + Offset, dual_arr, DualBlockSize);
-		std::merge(process_arr, process_arr + block_size, dual_arr, dual_arr + DualBlockSize, merged_arr);
+		exchange_data(process_arr, block_size, rank + offset, dual_arr, dual_block_size);
+	
+
+		merge(process_arr, process_arr + block_size, dual_arr, dual_arr + dual_block_size, merged_arr);
 		
 		if (mode == KeepFirstHalf)
 			std::copy(merged_arr, merged_arr + block_size, process_arr);
-		else
-			std::copy(merged_arr + block_size, merged_arr + block_size + DualBlockSize, process_arr);
-		
+		else {
+			std::copy(merged_arr + block_size, merged_arr + block_size + dual_block_size, process_arr);
+		}
 		delete[] dual_arr;
 		delete[] merged_arr;
 	}
 }
-
 void parallel_bubble(double* arr, int size)
 {
 	int number, rank;

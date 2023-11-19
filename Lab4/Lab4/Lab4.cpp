@@ -75,6 +75,8 @@ void serial_run(int size, bool print_all, double* arr) {
 
 }
 int main(int argc, char** argv) {
+	srand(time(0));
+
 	int size = 100;
 
 	if (argc > 1) {

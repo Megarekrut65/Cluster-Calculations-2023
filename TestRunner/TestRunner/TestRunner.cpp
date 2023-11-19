@@ -27,12 +27,13 @@ struct Comma final : std::numpunct<char>
     char do_decimal_point() const override { return ','; }
 };
 int main() {
+    const std::string lab = "Lab4.exe";
 
     const int PROCESSES = 4;
     int processes[PROCESSES] = { 1, 2, 4, 8 };
 
-    const int SIZE = 8, TIMES = 3;
-    int sizes[SIZE] = { 10, 100, 500,1000, 1500, 2000, 2500, 3000};
+    const int SIZE = 7, TIMES = 3;
+    int sizes[SIZE] = { 10, 100, 10000,20000, 30000, 40000, 50000};
 
     for (int p = 0; p < PROCESSES; p++) {
 
@@ -40,7 +41,7 @@ int main() {
         file.close();
 
         for (int i = 0; i < SIZE; i++) {
-            std::string command = "Lab3.exe " + std::to_string(sizes[i]);
+            std::string command = lab + " " + std::to_string(sizes[i]);
 
             if (processes[p] > 1) {
                 command = "mpiexec -n " + std::to_string(processes[p]) + " " + 

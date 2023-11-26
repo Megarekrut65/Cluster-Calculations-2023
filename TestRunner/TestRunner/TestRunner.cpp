@@ -27,13 +27,13 @@ struct Comma final : std::numpunct<char>
     char do_decimal_point() const override { return ','; }
 };
 int main() {
-    const std::string lab = "Lab4.exe";
+    const std::string lab = "Lab5.exe";
 
     const int PROCESSES = 4;
     int processes[PROCESSES] = { 1, 2, 4, 8 };
 
     const int SIZE = 7, TIMES = 3;
-    int sizes[SIZE] = { 10, 100, 10000,20000, 30000, 40000, 50000};
+    int sizes[SIZE] = { 10, 500, 600, 700, 800, 900, 1000};
 
     for (int p = 0; p < PROCESSES; p++) {
 

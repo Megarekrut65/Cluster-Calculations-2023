@@ -1,4 +1,5 @@
 #pragma once
+#include "utilities.h"
 
 
-void serial_bubble(double* arr, int size);
+void serial_floyd(int* matrix, int size);

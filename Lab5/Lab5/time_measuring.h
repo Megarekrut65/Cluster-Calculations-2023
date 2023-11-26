@@ -4,6 +4,6 @@
 
 #include <chrono>
 
-double serial_solving(double* arr, int size);
+double serial_solving(int* matrix, int size);
 
-double parallel_solving(double* arr, int size);
+double parallel_solving(int* arr, int size);

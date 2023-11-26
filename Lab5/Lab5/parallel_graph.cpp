@@ -1,170 +1,127 @@
 #include "parallel_graph.h"
 
-void process_initialization(int& size, double*& process_arr, int& block_size, 
-	int rank, int number) {
+void process_initialization(int*& process_rows, int& size, 
+	int& row_number, int rank, int number) {
 
 	MPI_Bcast(&size, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
-	int rest_data = size;
+	int rest_rows = size;
+	for (int i = 0; i < rank; i++) rest_rows = rest_rows - rest_rows / (number - i);
+	row_number = rest_rows / (number - rank);
 
-	for (int i = 0; i < rank; i++)
-		rest_data -= rest_data / (number - i);
-	block_size = rest_data / (number - rank);
-	process_arr = new double[block_size];
+	process_rows = new int[size * row_number];
 }
-void process_termination(double* process_data) {
-	delete[] process_data;
+void process_termination(int* process_rows) {
+	delete[]process_rows;
 }
-void data_distribution(double* arr, int size, double* process_arr, int block_size, 
-	int number, int rank) {
 
-	int* send_ind = new int[number];
-	int* send_num = new int[number];
-	int rest_data = size;
-	int current_size = size / number;
-	send_num[0] = current_size;
-	send_ind[0] = 0;
+void data_distribution(int* matrix, int* process_rows, int size, int row_number, int rank, int number) {
+	int* send_number;
+	int* send_index;
+	int rest_rows = size;
+
+	send_index = new int[number];
+	send_number = new int[number];
+
+	row_number = size / number;
+	send_number[0] = row_number * size;
+	send_index[0] = 0;
 
 	for (int i = 1; i < number; i++) {
-		rest_data -= current_size;
-		current_size = rest_data / (number - i);
-		send_num[i] = current_size;
-		send_ind[i] = send_ind[i - 1] + send_num[i - 1];
+		rest_rows -= row_number;
+		row_number = rest_rows / (number - i);
+		send_number[i] = row_number * size;
+		send_index[i] = send_index[i - 1] + send_number[i - 1];
 	}
 
-	MPI_Scatterv(arr, send_num, send_ind, MPI_DOUBLE, process_arr,
-		send_num[rank], MPI_DOUBLE, 0, MPI_COMM_WORLD);
+	MPI_Scatterv(matrix, send_number, send_index, MPI_INT,
+		process_rows, send_number[rank], MPI_INT, 0, MPI_COMM_WORLD);
 
-	delete[] send_num;
-	delete[] send_ind;
+	delete[]send_number;
+	delete[]send_index;
 }
-void data_collection(double* arr, int size, double* process_arr, int block_size, int number) {
+void result_collection(int* matrix, int* process_rows, int size, int row_number, int rank, int number) {
+	int* pReceiveNum;
+	int* pReceiveInd;
+	int RestRows = size; 
 
-	int* receive_num = new int[number];
-	int* receive_ind = new int[number];
-	int rest_data = size;
-	receive_ind[0] = 0;
-	receive_num[0] = size / number;
+	pReceiveNum = new int[number];
+	pReceiveInd = new int[number];
 
+	row_number = size / number;
+	pReceiveInd[0] = 0;
+	pReceiveNum[0] = row_number * size;
 	for (int i = 1; i < number; i++) {
-		rest_data -= receive_num[i - 1];
-		receive_num[i] = rest_data / (number - i);
-		receive_ind[i] = receive_ind[i - 1] + receive_num[i - 1];
+		RestRows -= row_number;
+		row_number = RestRows / (number - i);
+		pReceiveNum[i] = row_number * size;
+		pReceiveInd[i] = pReceiveInd[i - 1] + pReceiveNum[i - 1];
 	}
-	MPI_Gatherv(process_arr, block_size, MPI_DOUBLE, arr,
-		receive_num, receive_ind, MPI_DOUBLE, 0, MPI_COMM_WORLD);
 
-	delete[] receive_num;
-	delete[] receive_ind;
+	MPI_Gatherv(process_rows, pReceiveNum[rank], MPI_INT,
+		matrix, pReceiveNum, pReceiveInd, MPI_INT, 0, MPI_COMM_WORLD);
+
+	delete[]pReceiveNum;
+	delete[]pReceiveInd;
+}
+void row_distribution(int* process_rows, int size, int row_number, int k, int* row, int rabk, int number) {
+	int process_row_rank;
+	int process_row_number;
+	int rest_rows = size;
+	int index = 0;
+	int num = size / number;
+
+	for (process_row_rank = 1; process_row_rank < number + 1; process_row_rank++) {
+		if (k < index + num) break;
+		rest_rows -= num;
+		index += num;
+		num = rest_rows / (number - process_row_rank);
+	}
+	process_row_rank = process_row_rank - 1;
+	process_row_number = k - index;
+
+	if (process_row_rank == rabk)
+		std::copy(&process_rows[process_row_number * size], &process_rows[(process_row_number + 1) * size], row);
+
+	MPI_Bcast(row, size, MPI_INT, process_row_rank, MPI_COMM_WORLD);
 }
 
-void exchange_data(double* process_arr, int block_size, int dual_rank,
-	double* dual_arr, int dual_block_size) {
+void parallel_floyd_algo(int* process_rows, int size, int row_number, int rank, int number) {
+	int* row = new int[size];
+	int t1, t2;
 
-	MPI_Status status;
-	MPI_Sendrecv(process_arr, block_size, MPI_DOUBLE, dual_rank, 0,
-		dual_arr, dual_block_size, MPI_DOUBLE, dual_rank, 0,
-		MPI_COMM_WORLD, &status);
-}
-template <typename InputIt1, typename InputIt2, typename OutputIt>
-void merge(InputIt1 first1, InputIt1 last1, InputIt2 first2, InputIt2 last2, OutputIt result) {
-	while (first1 != last1 && first2 != last2) {
-		if (*first1 < *first2) {
-			*result = *first1;
-			++first1;
-		}
-		else {
-			*result = *first2;
-			++first2;
-		}
-		++result;
+	for (int k = 0; k < size; k++) {
+
+		row_distribution(process_rows, size, row_number, k, row, rank, number);
+
+		for (int i = 0; i < row_number; i++)
+			for (int j = 0; j < size; j++)
+				if ((process_rows[i * size + k] != -1) &&
+					(row[j] != -1)) {
+					t1 = process_rows[i * size + j];
+					t2 = process_rows[i * size + k] + row[j];
+					process_rows[i * size + j] = min(t1, t2);
+				}
 	}
 
-	// Copy the remaining elements, if any, from the first range
-	while (first1 != last1) {
-		*result = *first1;
-		++first1;
-		++result;
-	}
-
-	// Copy the remaining elements, if any, from the second range
-	while (first2 != last2) {
-		*result = *first2;
-		++first2;
-		++result;
-	}
+	delete[] row;
 }
 
-void parallel_bubble_sorting(double* process_arr, int block_size, int number, int rank) {
+void parallel_floyd(int* matrix, int size) {
 
-	serial_bubble(process_arr, block_size);
-	int offset;
-	
-	SplitMode mode;
-	for (int i = 0; i < number; i++) {
-		if ((i % 2) == 1) {
-			if ((rank % 2) == 1) {
-				offset = 1;
-				mode = KeepFirstHalf;
-			}
-			else {
-				offset = -1;
-				mode = KeepSecondHalf;
-			}
-		}
-		else {
-			if ((rank % 2) == 1) {
-				offset = -1;
-				mode = KeepSecondHalf;
-			}
-			else {
-				offset = 1;
-				mode = KeepFirstHalf;
-			}
-		}
-
-		if ((rank == number - 1) && (offset == 1)) continue;
-		if ((rank == 0) && (offset == -1)) continue;
-		
-		MPI_Status status;
-		int dual_block_size;
-		MPI_Sendrecv(&block_size, 1, MPI_INT, rank + offset, 0,
-			&dual_block_size, 1, MPI_INT, rank + offset, 0,
-			MPI_COMM_WORLD, &status);
-
-		double* dual_arr = new double[dual_block_size] {};
-		double* merged_arr = new double[block_size + dual_block_size] {};
-
-		exchange_data(process_arr, block_size, rank + offset, dual_arr, dual_block_size);
-	
-
-		merge(process_arr, process_arr + block_size, dual_arr, dual_arr + dual_block_size, merged_arr);
-		
-		if (mode == KeepFirstHalf)
-			std::copy(merged_arr, merged_arr + block_size, process_arr);
-		else {
-			std::copy(merged_arr + block_size, merged_arr + block_size + dual_block_size, process_arr);
-		}
-		delete[] dual_arr;
-		delete[] merged_arr;
-	}
-}
-void parallel_bubble(double* arr, int size)
-{
 	int number, rank;
 
 	MPI_Comm_size(MPI_COMM_WORLD, &number);
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
-	double* process_arr;
-	int block_size;
+	int* process_rows, row_number;
+	process_initialization(process_rows, size, row_number, rank, number);
 
-	process_initialization(size, process_arr, block_size, rank, number);
-	data_distribution(arr, size, process_arr, block_size, number, rank);
+	data_distribution(matrix, process_rows, size, row_number, rank, number);
 
-	parallel_bubble_sorting(process_arr, block_size, number, rank);
+	parallel_floyd_algo(process_rows, size, row_number, rank, number);
 
-	data_collection(arr, size, process_arr, block_size, number);
+	result_collection(matrix, process_rows, size, row_number, rank, number);
 
-	process_termination(process_arr);
+	process_termination(process_rows);
 }

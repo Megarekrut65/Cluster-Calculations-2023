@@ -18,32 +18,29 @@ void file_logging(double seconds) {
 	file.close();
 }
 
-void mpi_run(int argc, char** argv, int size, bool print_all, double* arr) {
+void mpi_run(int argc, char** argv, int size, bool print_all, int* arr) {
 	int rank;
 
 	MPI_Init(&argc, &argv);
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
 	if (rank == 0) {
-		generate_vector(arr, size);
+		generate_matrix(arr, size);
 		std::cout << "Size: " << size << std::endl;
 	}
 	if (print_all && rank == 0) {
 		std::cout << "Array:\n";
-		print_vector(arr, size);
+		print_matrix(arr, size);
 	}
 
 	double duration = parallel_solving(arr, size);
 
 	if (print_all && rank == 0) {
 		std::cout << "\nResult:\n";
-		print_vector(arr, size);
+		print_matrix(arr, size);
 	}
 
 	if (rank == 0) {
-		bool correctk = check_correct(arr, size);
-		std::cout << (correctk ? "Correct" : "Incorrect") << std::endl;
-
 		std::cout << "\nTime: " << duration << "s\n";
 		file_logging(duration);
 	}
@@ -51,24 +48,22 @@ void mpi_run(int argc, char** argv, int size, bool print_all, double* arr) {
 	MPI_Finalize();
 }
 
-void serial_run(int size, bool print_all, double* arr) {
-	generate_vector(arr, size);
+void serial_run(int size, bool print_all, int* matrix) {
+	generate_matrix(matrix, size);
 	std::cout << "Size: " << size << std::endl;
 
 	if (print_all) {
 
-		std::cout << "Array:\n";
-		print_vector(arr, size);
+		std::cout << "Matrix:\n";
+		print_matrix(matrix, size);
 	}
 
-	double duration = serial_solving(arr, size);
+	double duration = serial_solving(matrix, size);
 
 	if (print_all) {
 		std::cout << "\nResult:\n";
-		print_vector(arr, size);
+		print_matrix(matrix, size);
 	}
-	bool correctk = check_correct(arr, size);
-	std::cout << (correctk ? "Correct" : "Incorrect") << std::endl;
 
 	std::cout << "\nTime: " << duration << "s\n";
 	file_logging(duration);
@@ -93,7 +88,7 @@ int main(int argc, char** argv) {
 		print_all = std::stoi(argv[3]);
 	}
 
-	double* arr = new double[size] {};
+	int* arr = new int[size*size] {};
 
 	if (parallel) mpi_run(argc, argv, size, print_all, arr);
 	else serial_run(size, print_all, arr);

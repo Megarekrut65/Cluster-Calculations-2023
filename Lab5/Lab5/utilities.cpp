@@ -1,6 +1,6 @@
 #include "utilities.h"
 
-void generate_graph(double* matrix, int size) {
+void generate_matrix(int* matrix, int size) {
 	for (int i = 0; i < size; i++) {
 		for (int j = 0; j < size; j++) {
 			if (i != j) {
@@ -12,7 +12,7 @@ void generate_graph(double* matrix, int size) {
 	}
 }
 
-std::string vtos(double* vector, int size) {
+std::string vtos(int* vector, int size) {
 	std::stringstream out;
 	for (int i = 0; i < size; i++) {
 		out << vector[i] << " ";
@@ -22,7 +22,7 @@ std::string vtos(double* vector, int size) {
 	return out.str();
 }
 
-void print_matrix(double* matrix, int size) {
+void print_matrix(int* matrix, int size) {
 	for (int i = 0; i < size; i++) {
 		std::cout << vtos(matrix + i * size, size) << "\n";
 	}
